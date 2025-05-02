@@ -90,9 +90,11 @@ class DataCache:
             data: DataFrame containing historical data
         """
         try:
-            # Convert index to date column
+            # Convert index to date column and ensure proper date format
             df = data.reset_index()
             df.columns = [col.lower() for col in df.columns]
+            df["index"] = pd.to_datetime(df["index"]).dt.date  # Convert to date only
+            df = df.rename(columns={"index": "date"})
             df["symbol"] = symbol
             df["last_updated"] = datetime.now()
 
