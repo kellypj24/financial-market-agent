@@ -24,21 +24,21 @@ install:
 
 # Run tests
 test:
-	$(PYTEST) stock_tracker/tests -v
+	poetry run pytest stock_tracker/tests -v
 
 # Run tests with coverage
 test-cov:
-	$(PYTEST) stock_tracker/tests -v --cov=stock_tracker --cov-report=term-missing
+	poetry run pytest stock_tracker/tests -v --cov=stock_tracker --cov-report=term-missing
 
 # Run linters
 lint:
-	$(FLAKE8) stock_tracker
-	$(MYPY) stock_tracker
+	poetry run flake8 stock_tracker
+	poetry run mypy stock_tracker
 
 # Format code
 format:
-	$(BLACK) stock_tracker
-	$(ISORT) stock_tracker
+	poetry run black stock_tracker
+	poetry run isort stock_tracker
 
 # Clean up
 clean:
@@ -51,4 +51,4 @@ clean:
 
 # Run demo
 demo:
-	$(PYTHON) -m stock_tracker.tests.test_data_fetcher 
+	poetry run python -m stock_tracker.tests.test_data_fetcher 
