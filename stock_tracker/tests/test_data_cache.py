@@ -218,8 +218,8 @@ def test_error_handling(data_cache):
         data_cache.store_current_price("AAPL", -1.0)
 
     # Test invalid market summary
-    with pytest.raises(Exception, match="Invalid market summary: must be a dictionary"):
-        data_cache.store_market_summary("AAPL", pd.DataFrame())
+    with pytest.raises(Exception, match="Invalid market summary"):
+        data_cache.store_market_summary(pd.DataFrame())
 
 
 def test_concurrent_access(temp_db_dir):

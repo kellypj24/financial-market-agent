@@ -92,14 +92,18 @@ class DataCache:
         try:
             # Convert index to date column and ensure proper date format
             df = data.reset_index()
+            logger.debug(f"Input data columns: {df.columns}")
+
             # Convert column names to lowercase for storage
             df.columns = [col.lower() for col in df.columns]
-            df["index"] = pd.to_datetime(df["index"]).dt.strftime(
-                "%Y-%m-%d"
-            )  # Convert to string format
+            logger.debug(f"Lowercase columns: {df.columns}")
+
+            # Convert index to date column, preserving datetime type
             df = df.rename(columns={"index": "date"})
             df["symbol"] = symbol
             df["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            logger.debug(f"Final DataFrame to store:\n{df}")
 
             # Store data with explicit column mapping
             self.connection.execute(
@@ -119,6 +123,7 @@ class DataCache:
             """
             )
             logger.info(f"Stored historical data for {symbol}")
+
         except Exception as e:
             logger.error(f"Failed to store historical data for {symbol}: {str(e)}")
             raise
@@ -166,6 +171,9 @@ class DataCache:
 
             # Convert column names back to proper case
             result.columns = ["Open", "High", "Low", "Close", "Volume"]
+
+            # Ensure the index is in the same format as the input
+            result.index = result.index.normalize()  # Remove time component if any
 
             return result
         except Exception as e:
