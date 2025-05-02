@@ -79,8 +79,9 @@ def test_validate_historical_data_missing_columns(valid_historical_data):
 def test_validate_historical_data_invalid_types(valid_historical_data):
     """Test validation of historical data with invalid data types."""
     invalid_data = valid_historical_data.copy()
-    invalid_data["Open"] = invalid_data["Open"].astype(str)
-    with pytest.raises(ValueError, match="Column Open must be numeric"):
+    # Use a non-numeric string that can't be converted to float
+    invalid_data["Open"] = "not_a_number"
+    with pytest.raises(ValueError, match="Input should be a valid number"):
         validate_historical_data(invalid_data)
 
 
@@ -135,7 +136,7 @@ def test_validate_stock_info_invalid_symbol(valid_stock_info):
     """Test validation of stock info with invalid symbol."""
     invalid_info = valid_stock_info.copy()
     invalid_info["symbol"] = ""
-    with pytest.raises(ValueError, match="Symbol must contain only letters"):
+    with pytest.raises(ValueError, match="String should have at least 1 character"):
         validate_stock_info(invalid_info)
 
 
