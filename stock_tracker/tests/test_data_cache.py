@@ -219,7 +219,7 @@ def test_error_handling(data_cache):
 
     # Test invalid market summary
     with pytest.raises(Exception, match="Invalid market summary"):
-        data_cache.store_market_summary(pd.DataFrame())
+        data_cache.store_market_summary("AAPL", {})  # Empty dictionary is invalid
 
 
 def test_concurrent_access(temp_db_dir):

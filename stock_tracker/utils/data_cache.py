@@ -239,10 +239,24 @@ class DataCache:
             summary: Dictionary containing market summary data
 
         Raises:
-            ValueError: If summary is invalid
+            ValueError: If summary is invalid or empty
         """
-        if not isinstance(summary, dict):
-            raise ValueError("Invalid market summary: must be a dictionary")
+        if not summary or not isinstance(summary, dict):
+            raise ValueError("Invalid market summary")
+
+        # Check for required fields
+        required_fields = [
+            "current_price",
+            "day_high",
+            "day_low",
+            "volume",
+            "market_cap",
+            "week_52_high",
+            "week_52_low",
+        ]
+        missing_fields = [field for field in required_fields if field not in summary]
+        if missing_fields:
+            raise ValueError("Invalid market summary")
 
         try:
             self.connection.execute(
