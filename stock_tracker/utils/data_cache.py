@@ -92,7 +92,8 @@ class DataCache:
         try:
             # Convert index to date column and ensure proper date format
             df = data.reset_index()
-            # Preserve original column case
+            # Convert column names to lowercase for storage
+            df.columns = [col.lower() for col in df.columns]
             df["index"] = pd.to_datetime(df["index"]).dt.strftime(
                 "%Y-%m-%d"
             )  # Convert to string format
@@ -162,6 +163,10 @@ class DataCache:
             result["date"] = pd.to_datetime(result["date"]).astype("datetime64[ns]")
             result.set_index("date", inplace=True)
             result.index.name = None  # Remove index name to match input
+
+            # Convert column names back to proper case
+            result.columns = ["Open", "High", "Low", "Close", "Volume"]
+
             return result
         except Exception as e:
             logger.error(f"Failed to retrieve historical data for {symbol}: {str(e)}")
@@ -224,7 +229,13 @@ class DataCache:
         Args:
             symbol: Stock symbol
             summary: Dictionary containing market summary data
+
+        Raises:
+            ValueError: If summary is invalid
         """
+        if not isinstance(summary, dict):
+            raise ValueError("Invalid market summary: must be a dictionary")
+
         try:
             self.connection.execute(
                 """
