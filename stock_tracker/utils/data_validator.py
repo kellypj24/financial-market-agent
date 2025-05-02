@@ -2,7 +2,7 @@
 
 from typing import Dict, Any, List, Optional
 import pandas as pd
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from pydantic.types import confloat, conint
 
 
@@ -16,8 +16,9 @@ class StockInfo(BaseModel):
     regularMarketPrice: Optional[confloat(gt=0)] = None
     previousClose: Optional[confloat(gt=0)] = None
 
-    @validator("symbol")
-    def validate_symbol(cls, v):
+    @field_validator("symbol")
+    @classmethod
+    def validate_symbol(cls, v: str) -> str:
         """Validate stock symbol format."""
         if not v.isalpha():
             raise ValueError("Symbol must contain only letters")
@@ -33,22 +34,16 @@ class HistoricalDataPoint(BaseModel):
     Close: confloat(gt=0)
     Volume: conint(gt=0)
 
-    @root_validator
-    def validate_price_relationships(cls, values):
+    @model_validator(mode="after")
+    def validate_price_relationships(self) -> "HistoricalDataPoint":
         """Validate price relationships (High >= Low, etc.)."""
-        high = values.get("High")
-        low = values.get("Low")
-        open_price = values.get("Open")
-        close = values.get("Close")
-
-        if high < low:
+        if self.High < self.Low:
             raise ValueError("High price must be greater than or equal to Low price")
-        if open_price > high or open_price < low:
+        if self.Open > self.High or self.Open < self.Low:
             raise ValueError("Open price must be between High and Low")
-        if close > high or close < low:
+        if self.Close > self.High or self.Close < self.Low:
             raise ValueError("Close price must be between High and Low")
-
-        return values
+        return self
 
 
 class MarketSummaryPoint(BaseModel):
@@ -62,25 +57,18 @@ class MarketSummaryPoint(BaseModel):
     week_52_high: confloat(gt=0)
     week_52_low: confloat(gt=0)
 
-    @root_validator
-    def validate_price_relationships(cls, values):
+    @model_validator(mode="after")
+    def validate_price_relationships(self) -> "MarketSummaryPoint":
         """Validate price relationships."""
-        day_high = values.get("day_high")
-        day_low = values.get("day_low")
-        current = values.get("current_price")
-        week_52_high = values.get("week_52_high")
-        week_52_low = values.get("week_52_low")
-
-        if day_high < day_low:
+        if self.day_high < self.day_low:
             raise ValueError("Day high must be greater than or equal to day low")
-        if current > day_high or current < day_low:
+        if self.current_price > self.day_high or self.current_price < self.day_low:
             raise ValueError("Current price must be between day high and low")
-        if week_52_high < week_52_low:
+        if self.week_52_high < self.week_52_low:
             raise ValueError(
                 "52-week high must be greater than or equal to 52-week low"
             )
-
-        return values
+        return self
 
 
 def validate_historical_data(data: pd.DataFrame) -> bool:
