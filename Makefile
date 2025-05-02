@@ -1,4 +1,4 @@
-.PHONY: test lint format clean install
+.PHONY: test lint format clean
 
 # Python environment
 VENV = .venv
@@ -42,7 +42,6 @@ format:
 
 # Clean up
 clean:
-	rm -rf $(VENV)
 	rm -rf .pytest_cache
 	rm -rf .mypy_cache
 	rm -rf .coverage
