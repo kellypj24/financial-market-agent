@@ -93,16 +93,28 @@ class DataCache:
             # Convert index to date column and ensure proper date format
             df = data.reset_index()
             df.columns = [col.lower() for col in df.columns]
-            df["index"] = pd.to_datetime(df["index"]).dt.date  # Convert to date only
+            df["index"] = pd.to_datetime(df["index"]).dt.strftime(
+                "%Y-%m-%d"
+            )  # Convert to string format
             df = df.rename(columns={"index": "date"})
             df["symbol"] = symbol
-            df["last_updated"] = datetime.now()
+            df["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            # Store data
+            # Store data with explicit column mapping
             self.connection.execute(
                 """
                 INSERT OR REPLACE INTO historical_data 
-                SELECT * FROM df
+                (symbol, date, open, high, low, close, volume, last_updated)
+                SELECT 
+                    symbol,
+                    CAST(date AS DATE),
+                    CAST(open AS DOUBLE),
+                    CAST(high AS DOUBLE),
+                    CAST(low AS DOUBLE),
+                    CAST(close AS DOUBLE),
+                    CAST(volume AS BIGINT),
+                    CAST(last_updated AS TIMESTAMP)
+                FROM df
             """
             )
             logger.info(f"Stored historical data for {symbol}")
