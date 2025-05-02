@@ -197,7 +197,7 @@ def test_cleanup_old_data(data_cache, sample_historical_data):
     )
 
     # Clean up old data
-    data_cache.cleanup_old_data(days=30)
+    data_cache.cleanup_old_data(days_to_keep=30)
 
     # Verify data is removed
     result = data_cache.get_historical_data(symbol)

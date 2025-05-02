@@ -92,7 +92,7 @@ class DataCache:
         try:
             # Convert index to date column and ensure proper date format
             df = data.reset_index()
-            df.columns = [col.lower() for col in df.columns]
+            # Preserve original column case
             df["index"] = pd.to_datetime(df["index"]).dt.strftime(
                 "%Y-%m-%d"
             )  # Convert to string format
@@ -174,7 +174,13 @@ class DataCache:
         Args:
             symbol: Stock symbol
             price: Current price
+
+        Raises:
+            ValueError: If price is invalid (negative or zero)
         """
+        if price <= 0:
+            raise ValueError("Invalid current price")
+
         try:
             self.connection.execute(
                 """
