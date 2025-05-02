@@ -171,9 +171,15 @@ def test_cleanup_old_data(data_cache, sample_historical_data):
 
     # Delete old data and insert with new dates
     old_date = datetime.now() - timedelta(days=31)
+
+    # First delete the existing data
+    data_cache.connection.execute(
+        "DELETE FROM historical_data WHERE symbol = ?", (symbol,)
+    )
+
+    # Then insert the data with new dates
     data_cache.connection.execute(
         """
-        DELETE FROM historical_data WHERE symbol = ?;
         INSERT INTO historical_data
         SELECT 
             symbol,
@@ -187,7 +193,7 @@ def test_cleanup_old_data(data_cache, sample_historical_data):
         FROM historical_data
         WHERE symbol = ?
         """,
-        (old_date.date(), symbol, symbol),
+        (old_date.date(), symbol),
     )
 
     # Clean up old data

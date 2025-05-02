@@ -161,6 +161,7 @@ class DataCache:
             # Convert date column to datetime64[ns] to match input format
             result["date"] = pd.to_datetime(result["date"]).astype("datetime64[ns]")
             result.set_index("date", inplace=True)
+            result.index.name = None  # Remove index name to match input
             return result
         except Exception as e:
             logger.error(f"Failed to retrieve historical data for {symbol}: {str(e)}")
