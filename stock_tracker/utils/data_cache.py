@@ -158,6 +158,8 @@ class DataCache:
             if result.empty:
                 return None
 
+            # Convert date column to datetime64[ns] to match input format
+            result["date"] = pd.to_datetime(result["date"]).astype("datetime64[ns]")
             result.set_index("date", inplace=True)
             return result
         except Exception as e:

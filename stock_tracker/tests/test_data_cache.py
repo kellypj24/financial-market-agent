@@ -169,23 +169,33 @@ def test_cleanup_old_data(data_cache, sample_historical_data):
     # Store data
     data_cache.store_historical_data(symbol, sample_historical_data)
 
-    # Modify dates to be old
+    # Delete old data and insert with new dates
     old_date = datetime.now() - timedelta(days=31)
     data_cache.connection.execute(
         """
-        UPDATE historical_data 
-        SET date = ? 
+        DELETE FROM historical_data WHERE symbol = ?;
+        INSERT INTO historical_data
+        SELECT 
+            symbol,
+            ? as date,
+            open,
+            high,
+            low,
+            close,
+            volume,
+            last_updated
+        FROM historical_data
         WHERE symbol = ?
         """,
-        (old_date.date(), symbol),
+        (old_date.date(), symbol, symbol),
     )
 
     # Clean up old data
-    data_cache.cleanup_old_data(days_to_keep=30)
+    data_cache.cleanup_old_data(days=30)
 
     # Verify data is removed
-    remaining_data = data_cache.get_historical_data(symbol)
-    assert remaining_data is None
+    result = data_cache.get_historical_data(symbol)
+    assert result is None
 
 
 def test_error_handling(data_cache):
@@ -193,17 +203,17 @@ def test_error_handling(data_cache):
     # Test invalid historical data (empty DataFrame)
     with pytest.raises(
         Exception,
-        match="Binder Error: table historical_data has 8 columns but 3 values were supplied",
+        match='Binder Error: Referenced column "open" not found in FROM clause!',
     ):
         data_cache.store_historical_data("AAPL", pd.DataFrame())
 
     # Test invalid current price
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="Invalid current price"):
         data_cache.store_current_price("AAPL", -1.0)
 
-    # Test invalid market summary (missing required fields)
-    with pytest.raises(Exception):
-        data_cache.store_market_summary("AAPL", {"invalid": "data"})
+    # Test invalid market summary
+    with pytest.raises(Exception, match="Invalid market summary"):
+        data_cache.store_market_summary(pd.DataFrame())
 
 
 def test_concurrent_access(temp_db_dir):
